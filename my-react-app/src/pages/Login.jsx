@@ -10,7 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -43,7 +43,7 @@ export default function Login() {
         console.log("Login response data:", data);
         alert(data.message || "pta ni");
         // Navigate to login page
-        // navigate("/Dashboard");
+        navigate("/");
       } else {
         const error = await res.json();
         setLoading(false);
