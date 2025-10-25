@@ -1,4 +1,3 @@
-// src/pages/Signup.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -6,18 +5,50 @@ export default function Signup() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    console.log("Username:", username);
-    console.log("Email:", email);
-    console.log("Password:", password);
+    setLoading(true);
+    setErrMsg("");
 
-    // fake signup logic
-    if (username && email && password) {
-      alert("Signup Successful 🎉");
-      navigate("/login");
+    const formData = { username, email, password };
+        console.log("Request body:", JSON.stringify(formData));
+
+    try {
+      const res = await fetch("http://localhost:8888/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+        
+      });
+
+      console.log("Request body:", JSON.stringify(formData));
+
+      if (res.ok) {
+        setLoading(false);
+        alert("User registered successfully 🎉");
+        // Clear inputs
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        // Navigate to login page
+        navigate("/login");
+      } else {
+        const error = await res.json();
+        setLoading(false);
+        setErrMsg(error.message || "Something went wrong");
+        alert(error.message || "Something went wrong ❌");
+      }
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      setErrMsg("Server error");
+      alert("gadbad ha re baba");
     }
   };
 
@@ -49,8 +80,14 @@ export default function Signup() {
           style={styles.input}
           required
         />
-        <button type="submit" style={styles.button}>Sign Up</button>
+
+        <button type="submit" style={styles.button} disabled={loading}>
+          {loading ? "Signing up..." : "Sign Up"}
+        </button>
       </form>
+
+      {errMsg && <p style={{ color: "red" }}>{errMsg}</p>}
+
       <p>
         Already have an account?{" "}
         <Link to="/login" style={{ color: "blue" }}>Login</Link>
