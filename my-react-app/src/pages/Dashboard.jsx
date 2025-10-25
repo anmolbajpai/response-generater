@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Star, ThumbsUp, ThumbsDown, Send, Check, Edit2, Sparkles, TrendingUp, Clock } from 'lucide-react';
-import { data, useNavigate } from "react-router-dom";
-import {toast} from "react-hot-toast";
+import { Star, ThumbsUp, ThumbsDown, Send, Check, Edit2, Sparkles, TrendingUp, Clock, Plus, X, LogOut } from 'lucide-react';
+// import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 const Dashboard = () => {
   const [reviews, setReviews] = useState([]);
@@ -20,60 +20,79 @@ const Dashboard = () => {
     pending: 0
   });
 
-  // Mock data for demo
-  useEffect(() => {
-    const mockReviews = [
-      {
-        id: 1,
-        author: 'Priya Sharma',
-        rating: 5,
-        text: 'Amazing coffee and beautiful ambiance! The hazelnut latte was perfect. Will definitely come back.',
-        date: '2 hours ago',
-        status: 'pending',
-        aiReply: 'Thank you so much, Priya! We\'re thrilled you loved our hazelnut latte and ambiance. We can\'t wait to welcome you back soon! ☕',
-        sentiment: 'positive',
-        avatar: 'PS'
-      },
-      {
-        id: 2,
-        author: 'Rahul Kumar',
-        rating: 2,
-        text: 'Service was slow and the coffee was cold when it arrived. Not happy with the experience.',
-        date: '5 hours ago',
-        status: 'pending',
-        aiReply: 'We sincerely apologize for your disappointing experience, Rahul. This isn\'t the standard we strive for. We\'re addressing the service issues immediately. Please give us another chance to serve you better.',
-        sentiment: 'negative',
-        avatar: 'RK'
-      },
-      {
-        id: 3,
-        author: 'Anjali Verma',
-        rating: 4,
-        text: 'Good coffee and nice staff. Only complaint is the place gets too crowded on weekends.',
-        date: '1 day ago',
-        status: 'responded',
-        aiReply: 'Thanks for your feedback, Anjali! We\'re glad you enjoyed our coffee and staff. We understand weekend crowds can be challenging and we\'re working on making the experience better.',
-        sentiment: 'positive',
-        avatar: 'AV'
-      },
-      {
-        id: 4,
-        author: 'Vikram Singh',
-        rating: 5,
-        text: 'Best cafe in the area! Love the vibe and the staff is super friendly.',
-        date: '2 days ago',
-        status: 'responded',
-        aiReply: 'Thank you, Vikram! Your kind words mean the world to us. We\'re so happy you love the vibe here! 🙏',
-        sentiment: 'positive',
-        avatar: 'VS'
-      }
-    ];
+  // New Review Form State
+  const [newReview, setNewReview] = useState({
+    authorName: '',
+    rating: 5,
+    reviewText: ''
+  });
 
-    setReviews(mockReviews);
-    
-    const pending = mockReviews.filter(r => r.status === 'pending').length;
-    const responded = mockReviews.filter(r => r.status === 'responded').length;
-    const avgRating = (mockReviews.reduce((acc, r) => acc + r.rating, 0) / mockReviews.length).toFixed(1);
+  // const navigate = useNavigate();
+
+  // Fetch user data
+  const fetchUserData = async () => {
+    if (!token) {
+      // navigate("/login");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/api/auth/verify", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setUser(data.user);
+          fetchReviews();
+        } else {
+          throw new Error("Verification failed");
+        }
+      } else {
+        throw new Error("Unauthorized");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Session expired. Please login again.");
+      localStorage.removeItem("token");
+      // navigate("/login");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch user's reviews
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/reviews", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setReviews(data.reviews || []);
+        calculateStats(data.reviews || []);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load reviews");
+    }
+  };
+
+  // Calculate stats from reviews
+  const calculateStats = (reviewsList) => {
+    const pending = reviewsList.filter(r => r.status === 'pending').length;
+    const responded = reviewsList.filter(r => r.status === 'responded').length;
+    const avgRating = reviewsList.length > 0 
+      ? (reviewsList.reduce((acc, r) => acc + r.rating, 0) / reviewsList.length).toFixed(1)
+      : 0;
     
     setStats({
       totalReviews: mockReviews.length,
@@ -83,17 +102,96 @@ const Dashboard = () => {
     });
   }, []);
 
-  const handleApprove = (reviewId) => {
-    setReviews(reviews.map(r => 
-      r.id === reviewId ? { ...r, status: 'responded' } : r
-    ));
-    setSelectedReview(null);
-    
-    setStats(prev => ({
-      ...prev,
-      responded: prev.responded + 1,
-      pending: prev.pending - 1
-    }));
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    toast.success("Logged out successfully");
+    // navigate("/login");
+  };
+
+  // Add new review
+  const handleAddReview = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:8080/api/reviews/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newReview)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        toast.success("Review added successfully!");
+        setShowAddModal(false);
+        setNewReview({ authorName: '', rating: 5, reviewText: '' });
+        fetchReviews();
+      } else {
+        throw new Error("Failed to add review");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add review");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Generate AI reply
+  const handleGenerateReply = async (reviewId) => {
+    setGeneratingReply(true);
+    try {
+      const res = await fetch(`http://localhost:8080/api/reviews/${reviewId}/generate-reply`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const updatedReview = { ...selectedReview, aiReply: data.aiReply };
+        setSelectedReview(updatedReview);
+        toast.success("AI reply generated!");
+      } else {
+        throw new Error("Failed to generate reply");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate AI reply");
+    } finally {
+      setGeneratingReply(false);
+    }
+  };
+
+  // Approve and send reply
+  const handleApprove = async (reviewId) => {
+    try {
+      const res = await fetch(`http://localhost:8080/api/reviews/${reviewId}/approve`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ reply: selectedReview.aiReply })
+      });
+
+      if (res.ok) {
+        toast.success("Reply sent successfully!");
+        setSelectedReview(null);
+        fetchReviews();
+      } else {
+        throw new Error("Failed to send reply");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to send reply");
+    }
   };
 
   const handleEdit = (review) => {
@@ -507,39 +605,21 @@ const Dashboard = () => {
     sentimentNegative: {
       display: 'flex',
       alignItems: 'center',
-      gap: '4px',
-      color: '#DC2626',
-      background: '#FEF2F2',
-      padding: '8px 12px',
-      borderRadius: '20px'
-    },
-    emptyState: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      padding: '48px',
-      height: '100%'
-    },
-    emptyIcon: {
-      background: 'linear-gradient(135deg, #EEF2FF 0%, #FAF5FF 100%)',
-      padding: '24px',
-      borderRadius: '50%',
-      marginBottom: '16px'
-    },
-    emptyTitle: {
-      fontSize: '20px',
-      fontWeight: 'bold',
-      color: '#111827',
-      marginBottom: '8px'
-    },
-    emptyText: {
-      color: '#6B7280',
-      maxWidth: '400px',
-      lineHeight: '1.6'
+      gap: '6px'
     }
   };
+
+  if (loading) {
+    return (
+      <div style={{ ...styles.container, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ width: '48px', height: '48px', border: '4px solid #E5E7EB', borderTop: '4px solid #4F46E5', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ color: '#6B7280' }}>Loading...</p>
+        </div>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -791,4 +871,6 @@ const Dashboard = () => {
   );
 };
 
+
 export default Dashboard;
+
