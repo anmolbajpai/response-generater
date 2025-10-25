@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Send, Check, Edit2, Sparkles, TrendingUp, Clock } from 'lucide-react';
+import { data, useNavigate } from "react-router-dom";
+import {toast} from "react-hot-toast";
 
-const ReviewResponderApp = () => {
+const Dashboard = () => {
   const [reviews, setReviews] = useState([]);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedReply, setEditedReply] = useState('');
+  // const [token, setToken] = useState(null);
+  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(true);
+  const [errMsg, setErrMsg] = useState(""); 
+  const [username, setUsername] = useState("");
   const [stats, setStats] = useState({
     totalReviews: 0,
     responded: 0,
@@ -123,6 +130,44 @@ const ReviewResponderApp = () => {
       ))}
     </div>
   );
+  const navigate = useNavigate();
+
+  const navigateToSignup = () => {
+    navigate("/login");
+  };
+
+  const getUsername = async () => {
+    
+    // Logic to get the username
+    try {
+      const res = await fetch("http://localhost:8888/auth/user", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": token
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUsername(data.username);
+        setLoading(false);
+      } else {
+        setLoading(false);
+        setErrMsg(data.message || "Something went wrong");
+      }
+    } catch (err) {
+      console.error(err);
+      // setToken(null);
+      setLoading(false);
+      setErrMsg("Server error");
+      toast.error("server error");
+    }
+  }
+
+  useEffect(() => {
+      getUsername();
+  }, []);
 
   const styles = {
     container: {
@@ -517,6 +562,11 @@ const ReviewResponderApp = () => {
             </div>
             <div style={styles.avatar}>CD</div>
           </div>
+          {token ? (
+              <h3>{username}</h3>
+            ) : (
+              <button onClick={navigateToSignup}>Signup / Login</button>
+            )}
         </div>
       </div>
 
@@ -741,6 +791,10 @@ const ReviewResponderApp = () => {
   );
 };
 
+<<<<<<< HEAD:my-react-app/src/components/Dashboard.jsx
 export default ReviewResponderApp;
 
 
+=======
+export default Dashboard;
+>>>>>>> b1ac0ba857e8079bb2f2d40f835fd9ab2baaf977:my-react-app/src/pages/Dashboard.jsx
