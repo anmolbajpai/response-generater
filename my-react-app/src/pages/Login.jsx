@@ -1,21 +1,60 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Dashboard from "./Dashboard.jsx";
+import Signup from "./Signup.jsx";
+import { toast } from "react-hot-toast";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
+  // const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
+    setLoading(true);
+    setErrMsg("");
 
-    // fake login logic
-    if (email && password) {
-      alert("Login Successful ✅");
-      navigate("/signup"); // navigate to signup page or dashboard
+    const formData = { email, password };
+        console.log("Request body:", JSON.stringify(formData));
+
+    try {
+      const res = await fetch("http://localhost:8888/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+        
+      });
+
+      console.log("Request body:", JSON.stringify(formData));
+
+      if (res.ok) {
+        setLoading(false);
+        toast.success("User login successfully 🎉");
+        // Clear inputs
+        setEmail("");
+        setPassword("");
+        const data = await res.json();
+        data && localStorage.setItem("token", data.token);
+        console.log("Login response data:", data);
+        alert(data.message || "pta ni");
+        // Navigate to login page
+        // navigate("/Dashboard");
+      } else {
+        const error = await res.json();
+        setLoading(false);
+        setErrMsg(error.message || "Something went wrong");
+        toast.error(error.message || "Something went wrong ❌");
+      }
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      setErrMsg("Server error");
+      toast.error("server error");
     }
   };
 

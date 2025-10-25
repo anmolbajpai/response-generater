@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
 
 export default function Signup() {
   const [username, setUsername] = useState("");
@@ -31,7 +32,7 @@ export default function Signup() {
 
       if (res.ok) {
         setLoading(false);
-        alert("User registered successfully 🎉");
+        toast.success("User registered successfully 🎉");
         // Clear inputs
         setUsername("");
         setEmail("");
@@ -42,13 +43,13 @@ export default function Signup() {
         const error = await res.json();
         setLoading(false);
         setErrMsg(error.message || "Something went wrong");
-        alert(error.message || "Something went wrong ❌");
+        toast.error(error.message || "Something went wrong ❌");
       }
     } catch (err) {
       console.error(err);
       setLoading(false);
       setErrMsg("Server error");
-      alert("gadbad ha re baba");
+      toast.error("server error");
     }
   };
 
