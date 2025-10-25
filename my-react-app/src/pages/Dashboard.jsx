@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Send, Check, Edit2, Sparkles, TrendingUp, Clock } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
-const ReviewResponderApp = () => {
+const Dashboard = () => {
   const [reviews, setReviews] = useState([]);
   const [selectedReview, setSelectedReview] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -123,6 +124,11 @@ const ReviewResponderApp = () => {
       ))}
     </div>
   );
+  const navigate = useNavigate();
+
+const navigateToSignup = () => {
+    navigate("/login");
+  };
 
   const styles = {
     container: {
@@ -517,6 +523,7 @@ const ReviewResponderApp = () => {
             </div>
             <div style={styles.avatar}>CD</div>
           </div>
+          <button onClick={() => {navigateToSignup()}}>signup/login</button>
         </div>
       </div>
 
@@ -741,4 +748,4 @@ const ReviewResponderApp = () => {
   );
 };
 
-export default ReviewResponderApp;
+export default Dashboard;
