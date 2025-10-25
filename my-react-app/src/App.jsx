@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import Auth from './components/Auth';
-// import { authAPI } from './services/api';
+import { authAPI } from '../services/api';
 
 function App() {
   const [user, setUser] = useState(null);

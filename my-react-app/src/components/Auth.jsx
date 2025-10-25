@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, Mail, Lock, Building2, AlertCircle } from 'lucide-react';
-// import { authAPI } from '../services/api';
+import { authAPI } from '../../services/api';
 
 const Auth = ({ setUser }) => {
   const [email, setEmail] = useState('');
