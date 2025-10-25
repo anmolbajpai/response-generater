@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, ThumbsDown, Send, Check, Edit2, Sparkles, TrendingUp, Clock, Plus, X, LogOut } from 'lucide-react';
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 
 const Dashboard = () => {
@@ -27,12 +27,12 @@ const Dashboard = () => {
     reviewText: ''
   });
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // Fetch user data
   const fetchUserData = async () => {
     if (!token) {
-      // navigate("/login");
+      navigate("/");
       return;
     }
 
@@ -59,7 +59,7 @@ const Dashboard = () => {
       console.error(err);
       toast.error("Session expired. Please login again.");
       localStorage.removeItem("token");
-      // navigate("/login");
+      // ("/login");
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ const Dashboard = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     toast.success("Logged out successfully");
-    // navigate("/login");
+    navigate("/login");
   };
 
   // Add new review
@@ -554,17 +554,17 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{ ...styles.container, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', border: '4px solid #E5E7EB', borderTop: '4px solid #4F46E5', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ color: '#6B7280' }}>Loading...</p>
-        </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div style={{ ...styles.container, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+  //       <div style={{ textAlign: 'center' }}>
+  //         <div style={{ width: '48px', height: '48px', border: '4px solid #E5E7EB', borderTop: '4px solid #4F46E5', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+  //         <p style={{ color: '#6B7280' }}>Loading...</p>
+  //       </div>
+  //       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div style={styles.container}>
@@ -896,10 +896,6 @@ const Dashboard = () => {
   );
 };
 
-<<<<<<< HEAD:my-react-app/src/components/Dashboard.jsx
-export default ReviewResponderApp;
 
-
-=======
 export default Dashboard;
->>>>>>> b1ac0ba857e8079bb2f2d40f835fd9ab2baaf977:my-react-app/src/pages/Dashboard.jsx
+
