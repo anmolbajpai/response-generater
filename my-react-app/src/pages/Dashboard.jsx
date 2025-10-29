@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [errMsg, setErrMsg] = useState(""); 
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
+  const [reviewDialog, setReviewDialog] = useState(false);
   const [stats, setStats] = useState({
     totalReviews: 0,
     responded: 0,
@@ -153,6 +154,80 @@ const Dashboard = () => {
     }
   };
 
+  const handleReviewClick = (review) => {
+    setSelectedReview(review);
+    setReviewDialog(true);
+  };
+
+  // const GenerateApiResponse = async () => {
+  //   if (!selectedReview) return;
+  //   try{
+  //     const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCTgwwY4c2fYonXezKqybpSgLp6u5qG-HE", {
+  //     method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       }
+  //     });
+
+  //     if (res.ok) {
+  //       const data = await res.json();
+  //       const updatedReview = { ...selectedReview, aiReply: data.aiReply };
+  //       setSelectedReview(updatedReview);
+  //       toast.success("AI reply generated!");
+  //     } else {
+  //       throw new Error("Failed to generate reply");
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Failed to generate AI reply");
+  //   } finally {
+  //     setGeneratingReply(false);
+  //   }
+
+  const GenerateApiResponse = async () => {
+    setReviewDialog(true);
+  if (!selectedReview) return;
+
+  setGeneratingReply(true);
+  try {
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCTgwwY4c2fYonXezKqybpSgLp6u5qG-HE",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Write a very short friendly business reply to this review:\n"${selectedReview.reviewtxt}"`,
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      const aiText =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text || "No reply generated";
+
+      const updatedReview = { ...selectedReview, aiReply: aiText };
+      setSelectedReview(updatedReview);
+      toast.success("AI reply generated!");
+    } else {
+      throw new Error("Failed to generate reply");
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to generate AI reply");
+  } finally {
+    setGeneratingReply(false);
+  }
+};
+
   // Generate AI reply
   const handleGenerateReply = async (reviewId) => {
     setGeneratingReply(true);
@@ -212,6 +287,7 @@ const Dashboard = () => {
 
   const handleSaveEdit = async (reviewId) => {
     try {
+      console.log("Saving edited reply:", editedReply);
       const res = await fetch(`http://localhost:8080/api/reviews/${reviewId}/approve`, {
         method: "POST",
         headers: {
@@ -677,7 +753,7 @@ const Dashboard = () => {
                       ...(selectedReview?.id === review.id ? { boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.3)' } : {})
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                    <div onClick={() => {handleReviewClick(review)}} style={{ display: 'flex cursor-pointer', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
                       <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #818CF8 0%, #C084FC 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontWeight: '600', fontSize: '14px' }}>
                         {review.name?.substring(0, 2).toUpperCase()}
                       </div>
@@ -697,6 +773,139 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </div>
+
+{reviewDialog && selectedReview && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "linear-gradient(135deg, #EEF2FF 0%, #FFFFFF 50%, #FAF5FF 100%)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      backdropFilter: "blur(3px)",
+    }}
+  >
+    <div
+      style={{
+        background: "#FFFFFF",
+        borderRadius: "20px",
+        width: "90%",
+        maxWidth: "520px",
+        padding: "32px",
+        boxShadow: "0 10px 30px rgba(0, 0, 255, 0.15)",
+        position: "relative",
+        animation: "fadeIn 0.25s ease",
+        border: "1px solid rgba(0, 0, 255, 0.1)",
+      }}
+    >
+      {/* ❌ Close button */}
+      <button
+        onClick={() => setReviewDialog(false)}
+        style={{
+          position: "absolute",
+          top: "14px",
+          right: "14px",
+          border: "none",
+          background: "none",
+          cursor: "pointer",
+        }}
+      >
+        <X size={22} color="#6B7280" />
+      </button>
+
+      {/* Title */}
+      <h2
+        style={{
+          fontSize: "20px",
+          fontWeight: "700",
+          color: "#111827",
+          textAlign: "center",
+          marginBottom: "16px",
+        }}
+      >
+        {selectedReview.name}
+      </h2>
+
+      {/* Rating */}
+      <div style={{ margin: "10px 0", textAlign: "center" }}>
+        <StarRating rating={selectedReview.rating} />
+      </div>
+
+      {/* Review Text */}
+      <p
+        style={{
+          fontSize: "15px",
+          color: "#374151",
+          lineHeight: "1.6",
+          marginBottom: "24px",
+          textAlign: "center",
+        }}
+      >
+        {selectedReview.reviewtxt}
+      </p>
+
+      {/* ✨ Generate AI Reply button */}
+      <button
+        onClick={GenerateApiResponse}
+        style={{
+          background: "linear-gradient(90deg, #6366F1 0%, #A855F7 100%)",
+          color: "#FFF",
+          border: "none",
+          borderRadius: "12px",
+          padding: "12px 20px",
+          fontWeight: "600",
+          cursor: "pointer",
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
+          transition: "all 0.2s ease",
+        }}
+      >
+        <Sparkles size={16} />
+        {generatingReply ? "Generating..." : "Generate AI Reply"}
+      </button>
+
+      {/* 💬 AI Reply Display */}
+      {selectedReview.aiReply && (
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "16px",
+            background: "#F3F4F6",
+            borderRadius: "10px",
+            border: "1px solid #E5E7EB",
+          }}
+        >
+          <h4
+            style={{
+              fontSize: "16px",
+              fontWeight: "600",
+              color: "#1E3A8A",
+              marginBottom: "8px",
+            }}
+          >
+            AI Reply:
+          </h4>
+          <p
+            style={{
+              fontSize: "14px",
+              color: "#374151",
+              whiteSpace: "pre-line",
+              lineHeight: "1.6",
+            }}
+          >
+            {selectedReview.aiReply}
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
                     <p style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6' }}>{review.reviewtxt}</p>
                   </div>
                 ))
