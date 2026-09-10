@@ -44,7 +44,7 @@ React UI
 ### Clone the repository
 
 ```bash
-git clone https://github.com/your-username/response-generator-frontend.git
+git clone https://github.com/anmolbajpai/response-generater
 cd response-generator-frontend
 ```
 
@@ -68,7 +68,7 @@ This frontend communicates with a separate **Spring Boot backend** through REST 
 
 Backend repository:
 
-`Add your backend GitHub repository link here`
+[Backend GitHub repository link](https://github.com/anmolbajpai/Response-Generator-Backend)
 
 ## 🔮 Future Scope
 
@@ -83,5 +83,5 @@ Backend repository:
 **Anmol Bajpai**
 
 * GitHub: anmolbajpai
-* LinkedIn: linkedin.com/in/anmolbajpai1
+* LinkedIn: [Anmol Bajpai](linkedin.com/in/anmolbajpai1)
 * Email: [anmolbajpai164@gmail.com](mailto:anmolbajpai164@gmail.com)
