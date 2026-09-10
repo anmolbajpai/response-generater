@@ -82,6 +82,6 @@ Backend repository:
 
 **Anmol Bajpai**
 
-* GitHub: anmolbajpai
+* GitHub: [anmolbajpai](https://github.com/anmolbajpai)
 * LinkedIn: [Anmol Bajpai](linkedin.com/in/anmolbajpai1)
 * Email: [anmolbajpai164@gmail.com](mailto:anmolbajpai164@gmail.com)
